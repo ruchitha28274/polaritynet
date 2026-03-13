@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>PolarityNet Sentiment Analyzer</title>
+
+<style>
+
+body{
+font-family: Arial;
+text-align:center;
+background:#f4f6f8;
+margin-top:80px;
+}
+
+textarea{
+width:400px;
+height:120px;
+padding:10px;
+font-size:16px;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+margin-top:10px;
+background:#007BFF;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+#loading{
+display:none;
+font-size:18px;
+margin-top:15px;
+}
+
+#result{
+margin-top:20px;
+font-size:22px;
+font-weight:bold;
+}
+
+.positive{
+color:green;
+}
+
+.negative{
+color:red;
+}
+
+.neutral{
+color:orange;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>PolarityNet Sentiment Analyzer</h1>
+
+<textarea id="review" placeholder="Enter product review here"></textarea>
+
+<br>
+
+<button onclick="analyze()">Analyze Sentiment</button>
+
+<div id="loading">Analyzing...</div>
+
+<div id="result"></div>
+
+<script>
+
+async function analyze(){
+
+let reviewText = document.getElementById("review").value;
+
+document.getElementById("loading").style.display="block";
+document.getElementById("result").innerHTML="";
+
+let response = await fetch("http://127.0.0.1:8000/predict",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+text:reviewText
+})
+});
+
+let data = await response.json();
+
+document.getElementById("loading").style.display="none";
+
+let sentiment = data.sentiment;
+let confidence = data.confidence;
+
+let icon="";
+
+if(sentiment=="Positive"){
+icon="😊";
+}
+else if(sentiment=="Negative"){
+icon="😞";
+}
+else{
+icon="😐";
+}
+
+document.getElementById("result").innerHTML =
+`<span class="${sentiment.toLowerCase()}">
+${icon} ${sentiment} <br>
+Confidence: ${confidence}%
+</span>`;
+
+}
+
+</script>
+
+</body>
+</html>

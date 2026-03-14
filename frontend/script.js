@@ -1,59 +1,63 @@
-// Function to analyze sentiment
-async function analyzeSentiment() {
+async function analyze() {
 
-    const reviewInput = document.getElementById("reviewInput").value;
-    const resultDiv = document.getElementById("result");
+    let reviewText = document.getElementById("review").value;
 
-    // If user didn't enter anything
-    if (reviewInput.trim() === "") {
-        resultDiv.innerHTML = "⚠️ Please enter a review.";
+    if(reviewText.trim() === ""){
+        alert("Please enter a review");
         return;
     }
 
-    // Show loading message
-    resultDiv.innerHTML = "⏳ Analyzing sentiment...";
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("result").innerHTML = "";
 
     try {
 
-        const response = await fetch("https://polaritynet-aykt.onrender.com/predict", {
+        let response = await fetch("https://polaritynet-aykt.onrender.com/predict", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                text: reviewInput
+                text: reviewText
             })
         });
 
-        const data = await response.json();
+        let data = await response.json();
 
-        let sentimentColor = "black";
-        let icon = "😐";
+        document.getElementById("loading").style.display = "none";
 
-        if (data.sentiment === "Positive") {
-            sentimentColor = "green";
+        let sentiment = data.sentiment;
+        let confidence = data.confidence;
+
+        let icon = "";
+
+        if(sentiment === "Positive"){
             icon = "😊";
-        } 
-        else if (data.sentiment === "Negative") {
-            sentimentColor = "red";
-            icon = "😡";
-        } 
-        else {
-            sentimentColor = "black";
+        }
+        else if(sentiment === "Negative"){
+            icon = "😞";
+        }
+        else{
             icon = "😐";
         }
 
-        resultDiv.innerHTML = `
-            <h3 style="color:${sentimentColor}">
-                ${icon} Sentiment: ${data.sentiment}
-            </h3>
-            <p>Confidence: ${data.confidence}%</p>
-        `;
+        document.getElementById("result").innerHTML =
+        `<span class="${sentiment.toLowerCase()}">
+        ${icon} ${sentiment} <br>
+        Confidence: ${confidence}%
+        </span>`;
 
-    } catch (error) {
-
-        resultDiv.innerHTML = "❌ Error connecting to server.";
-
-        console.error("API Error:", error);
     }
+    catch(error){
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("result").innerHTML =
+        `<span style="color:red;">
+        Error connecting to API
+        </span>`;
+
+        console.log(error);
+    }
+
 }

@@ -1,24 +1,59 @@
-async function analyzeReview(){
+// Function to analyze sentiment
+async function analyzeSentiment() {
 
-let review = document.getElementById("reviewInput").value;
+    const reviewInput = document.getElementById("reviewInput").value;
+    const resultDiv = document.getElementById("result");
 
-let response = await fetch("http://127.0.0.1:8000/predict",{
+    // If user didn't enter anything
+    if (reviewInput.trim() === "") {
+        resultDiv.innerHTML = "⚠️ Please enter a review.";
+        return;
+    }
 
-method:"POST",
+    // Show loading message
+    resultDiv.innerHTML = "⏳ Analyzing sentiment...";
 
-headers:{
-"Content-Type":"application/json"
-},
+    try {
 
-body: JSON.stringify({
-text: review
-})
+        const response = await fetch("https://polaritynet-aykt.onrender.com/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                text: reviewInput
+            })
+        });
 
-});
+        const data = await response.json();
 
-let data = await response.json();
+        let sentimentColor = "black";
+        let icon = "😐";
 
-document.getElementById("sentimentResult").innerText =
-"Sentiment: " + data.sentiment;
+        if (data.sentiment === "Positive") {
+            sentimentColor = "green";
+            icon = "😊";
+        } 
+        else if (data.sentiment === "Negative") {
+            sentimentColor = "red";
+            icon = "😡";
+        } 
+        else {
+            sentimentColor = "black";
+            icon = "😐";
+        }
 
+        resultDiv.innerHTML = `
+            <h3 style="color:${sentimentColor}">
+                ${icon} Sentiment: ${data.sentiment}
+            </h3>
+            <p>Confidence: ${data.confidence}%</p>
+        `;
+
+    } catch (error) {
+
+        resultDiv.innerHTML = "❌ Error connecting to server.";
+
+        console.error("API Error:", error);
+    }
 }

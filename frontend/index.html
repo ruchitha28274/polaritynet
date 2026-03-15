@@ -2,6 +2,7 @@
 <html>
 
 <head>
+
 <title>PolarityNet Sentiment Analyzer</title>
 
 <link rel="stylesheet" href="style.css">
@@ -13,7 +14,10 @@
 <div class="container">
 
 <h1>PolarityNet Sentiment Analyzer</h1>
-<p class="subtitle">Hybrid Sentiment Analysis using VADER</p>
+
+<p class="subtitle">
+Hybrid NLP Sentiment Analysis (ML + VADER)
+</p>
 
 <textarea id="review" placeholder="Enter product review here"></textarea>
 
@@ -21,7 +25,7 @@
 
 <button onclick="analyze()">Analyze Sentiment</button>
 
-<div id="loading">⏳ Analyzing sentiment...</div>
+<div id="loading" style="display:none;">⏳ Analyzing sentiment...</div>
 
 <div id="result"></div>
 
@@ -30,4 +34,5 @@
 <script src="script.js"></script>
 
 </body>
+
 </html>

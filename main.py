@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import joblib
 
 app = FastAPI()
 
@@ -14,16 +15,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize VADER
 vader = SentimentIntensityAnalyzer()
 
+# Load trained ML model
+model = joblib.load("sentiment_model.pkl")
+vectorizer = joblib.load("vectorizer.pkl")
+
+# Request body format
 class Review(BaseModel):
     text: str
 
 
+# -------------------------------
+# VADER Sentiment
+# -------------------------------
 def analyze_sentiment(text):
 
     score = vader.polarity_scores(text)
-
     compound = score["compound"]
 
     if compound >= 0.05:
@@ -38,10 +47,12 @@ def analyze_sentiment(text):
     return sentiment, confidence
 
 
+# -------------------------------
+# Recursive Sentiment Logic
+# -------------------------------
 def recursive_sentiment(text):
 
     sentences = text.split(".")
-
     results = []
 
     for s in sentences:
@@ -59,18 +70,50 @@ def recursive_sentiment(text):
     return final, confidence
 
 
+# -------------------------------
+# ML Model Sentiment
+# -------------------------------
+def ml_sentiment(text):
+
+    text_vector = vectorizer.transform([text])
+
+    prediction = model.predict(text_vector)[0]
+
+    return prediction
+
+
+# -------------------------------
+# Home API
+# -------------------------------
 @app.get("/")
 def home():
     return {"message": "PolarityNet Hybrid AI Running"}
 
 
+# -------------------------------
+# Predict API
+# -------------------------------
 @app.post("/predict")
 def predict(review: Review):
 
-    sentiment, confidence = recursive_sentiment(review.text)
+    text = review.text
+
+    # VADER + Recursive result
+    vader_sentiment, confidence = recursive_sentiment(text)
+
+    # ML prediction
+    ml_prediction = ml_sentiment(text)
+
+    # Hybrid decision
+    if vader_sentiment == ml_prediction:
+        final_sentiment = vader_sentiment
+    else:
+        final_sentiment = ml_prediction
 
     return {
-        "review": review.text,
-        "sentiment": sentiment,
+        "review": text,
+        "vader_sentiment": vader_sentiment,
+        "ml_sentiment": ml_prediction,
+        "final_sentiment": final_sentiment,
         "confidence": confidence
     }

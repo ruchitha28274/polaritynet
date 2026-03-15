@@ -1,70 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head>
 
+<head>
 <title>PolarityNet Sentiment Analyzer</title>
 
-<style>
-
-body{
-font-family: Arial;
-text-align:center;
-background:#f4f6f8;
-margin-top:80px;
-}
-
-textarea{
-width:400px;
-height:120px;
-padding:10px;
-font-size:16px;
-}
-
-button{
-padding:10px 20px;
-font-size:16px;
-margin-top:10px;
-background:#007BFF;
-color:white;
-border:none;
-cursor:pointer;
-}
-
-button:hover{
-background:#0056b3;
-}
-
-#loading{
-display:none;
-font-size:18px;
-margin-top:15px;
-}
-
-#result{
-margin-top:20px;
-font-size:22px;
-font-weight:bold;
-}
-
-.positive{
-color:green;
-}
-
-.negative{
-color:red;
-}
-
-.neutral{
-color:black;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
+<div class="container">
+
 <h1>PolarityNet Sentiment Analyzer</h1>
+<p class="subtitle">Hybrid Sentiment Analysis using VADER</p>
 
 <textarea id="review" placeholder="Enter product review here"></textarea>
 
@@ -76,68 +25,9 @@ color:black;
 
 <div id="result"></div>
 
-<script>
+</div>
 
-async function analyze(){
-
-let reviewText = document.getElementById("review").value;
-
-if(reviewText.trim()==""){
-document.getElementById("result").innerHTML="⚠️ Please enter a review";
-return;
-}
-
-document.getElementById("loading").style.display="block";
-document.getElementById("result").innerHTML="";
-
-try{
-
-let response = await fetch("https://polaritynet-aykt.onrender.com/predict",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-text:reviewText
-})
-});
-
-let data = await response.json();
-
-document.getElementById("loading").style.display="none";
-
-let sentiment = data.sentiment;
-let confidence = data.confidence;
-
-let icon="";
-
-if(sentiment=="Positive"){
-icon="😊";
-}
-else if(sentiment=="Negative"){
-icon="😞";
-}
-else{
-icon="😐";
-}
-
-document.getElementById("result").innerHTML =
-`<span class="${sentiment.toLowerCase()}">
-${icon} ${sentiment} <br>
-Confidence: ${confidence}%
-</span>`;
-
-}
-catch(error){
-
-document.getElementById("loading").style.display="none";
-document.getElementById("result").innerHTML="❌ Server connection error";
-
-}
-
-}
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>

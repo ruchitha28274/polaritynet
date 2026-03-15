@@ -18,18 +18,42 @@ app.add_middleware(
 # Initialize VADER
 vader = SentimentIntensityAnalyzer()
 
-# Load trained ML model
+# Load ML model
 model = joblib.load("sentiment_model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
-# Request body format
+
 class Review(BaseModel):
     text: str
 
 
-# -------------------------------
-# VADER Sentiment
-# -------------------------------
+# -------------------------
+# Highlight sentiment words
+# -------------------------
+def highlight_words(text):
+
+    words = text.split()
+    highlighted = []
+
+    for word in words:
+
+        score = vader.polarity_scores(word)["compound"]
+
+        if score >= 0.05:
+            highlighted.append(f"<span style='color:green'>{word}</span>")
+
+        elif score <= -0.05:
+            highlighted.append(f"<span style='color:red'>{word}</span>")
+
+        else:
+            highlighted.append(f"<span style='color:black'>{word}</span>")
+
+    return " ".join(highlighted)
+
+
+# -------------------------
+# VADER sentiment
+# -------------------------
 def analyze_sentiment(text):
 
     score = vader.polarity_scores(text)
@@ -47,9 +71,9 @@ def analyze_sentiment(text):
     return sentiment, confidence
 
 
-# -------------------------------
-# Recursive Sentiment Logic
-# -------------------------------
+# -------------------------
+# Recursive logic
+# -------------------------
 def recursive_sentiment(text):
 
     sentences = text.split(".")
@@ -57,7 +81,7 @@ def recursive_sentiment(text):
 
     for s in sentences:
         if s.strip() != "":
-            sentiment, confidence = analyze_sentiment(s)
+            sentiment, _ = analyze_sentiment(s)
             results.append(sentiment)
 
     if len(results) == 0:
@@ -70,48 +94,48 @@ def recursive_sentiment(text):
     return final, confidence
 
 
-# -------------------------------
-# ML Model Sentiment
-# -------------------------------
+# -------------------------
+# ML model prediction
+# -------------------------
 def ml_sentiment(text):
 
-    text_vector = vectorizer.transform([text])
-
-    prediction = model.predict(text_vector)[0]
+    vector = vectorizer.transform([text])
+    prediction = model.predict(vector)[0]
 
     return prediction
 
 
-# -------------------------------
+# -------------------------
 # Home API
-# -------------------------------
+# -------------------------
 @app.get("/")
 def home():
     return {"message": "PolarityNet Hybrid AI Running"}
 
 
-# -------------------------------
+# -------------------------
 # Predict API
-# -------------------------------
+# -------------------------
 @app.post("/predict")
 def predict(review: Review):
 
     text = review.text
 
-    # VADER + Recursive result
     vader_sentiment, confidence = recursive_sentiment(text)
 
-    # ML prediction
     ml_prediction = ml_sentiment(text)
 
-    # Hybrid decision
+    # Hybrid logic
     if vader_sentiment == ml_prediction:
         final_sentiment = vader_sentiment
     else:
         final_sentiment = ml_prediction
 
+    highlighted = highlight_words(text)
+
     return {
         "review": text,
+        "highlighted_text": highlighted,
         "vader_sentiment": vader_sentiment,
         "ml_sentiment": ml_prediction,
         "final_sentiment": final_sentiment,

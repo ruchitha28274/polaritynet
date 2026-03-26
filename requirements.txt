@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-vaderSentiment
-transformers
-torch
-pandas
-
-nltk

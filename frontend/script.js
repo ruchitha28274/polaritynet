@@ -1,63 +1,69 @@
 async function analyze() {
 
-    let reviewText = document.getElementById("review").value;
+let reviewText = document.getElementById("review").value;
 
-    if(reviewText.trim() === ""){
-        alert("Please enter a review");
-        return;
+if (reviewText.trim() === "") {
+    alert("Please enter a review");
+    return;
+}
+
+document.getElementById("loading").style.display = "block";
+document.getElementById("result").innerHTML = "";
+
+try {
+
+    let response = await fetch("https://polaritynet-aykt.onrender.com/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            text: reviewText
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error("API Error");
     }
 
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("result").innerHTML = "";
+    let data = await response.json();
 
-    try {
+    document.getElementById("loading").style.display = "none";
 
-        let response = await fetch("https://polaritynet-aykt.onrender.com/predict", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                text: reviewText
-            })
-        });
+    let sentiment = data.final_sentiment;
+    let confidence = data.confidence;
+    let highlighted = data.highlighted_text;
 
-        let data = await response.json();
+    let icon = "";
 
-        document.getElementById("loading").style.display = "none";
+    if (sentiment === "Positive") {
+        icon = "😊";
+    }
+    else if (sentiment === "Negative") {
+        icon = "😞";
+    }
+    else {
+        icon = "😐";
+    }
 
-        let sentiment = data.sentiment;
-        let confidence = data.confidence;
-
-        let icon = "";
-
-        if(sentiment === "Positive"){
-            icon = "😊";
-        }
-        else if(sentiment === "Negative"){
-            icon = "😞";
-        }
-        else{
-            icon = "😐";
-        }
-
-        document.getElementById("result").innerHTML =
-        `<span class="${sentiment.toLowerCase()}">
+    document.getElementById("result").innerHTML =
+    `<span class="${sentiment.toLowerCase()}">
         ${icon} ${sentiment} <br>
-        Confidence: ${confidence}%
-        </span>`;
+        Confidence: ${confidence}% <br><br>
+        ${highlighted}
+    </span>`;
 
-    }
-    catch(error){
+}
+catch (error) {
 
-        document.getElementById("loading").style.display = "none";
+    document.getElementById("loading").style.display = "none";
 
-        document.getElementById("result").innerHTML =
-        `<span style="color:red;">
+    document.getElementById("result").innerHTML =
+    `<span style="color:red;">
         Error connecting to API
-        </span>`;
+    </span>`;
 
-        console.log(error);
-    }
+    console.log(error);
+}
 
 }
